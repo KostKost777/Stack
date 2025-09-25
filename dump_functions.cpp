@@ -8,16 +8,19 @@ int StackVerifier(struct Stack* stk)
     int err_code = 0;
 
     if (stk == NULL)
-        err_code ^= stack_ptr_err;
+        err_code |= stack_ptr_err;
+
+    if (stk == NULL)
+        err_code |= stack_ptr_err;
 
     if (stk->data == NULL)
-        err_code ^= data_ptr_err;
+        err_code |= data_ptr_err;
 
     if (stk->capacity <= 0 || stk->capacity > MAXCAPACITY)
-        err_code ^= stack_capacity_err;
+        err_code |= stack_capacity_err;
 
     if (stk->size < 0 || stk->size > MAXSIZE)
-        err_code ^= stack_size_err;
+        err_code |= stack_size_err;
 
     return err_code;
 }
