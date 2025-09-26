@@ -11,15 +11,18 @@ int StackVerifier(struct Stack* stk)
     if (stk->data == NULL)
         stk->err_info.err_code |= data_ptr_err;
 
-    if (stk->data[0] != CANARY ||  stk->data[stk->capacity + 1] != CANARY)
-        stk->err_info.err_code |= stack_canary_err;
-
     if (stk->capacity <= 0 || stk->capacity > MAXCAPACITY)
         stk->err_info.err_code |= stack_capacity_err;
 
+    else {
+        if (stk->data[0] != CANARY ||  stk->data[stk->capacity + 1] != CANARY)
+            stk->err_info.err_code |= stack_canary_err;
+    }
+
     if (stk->size < 1 || stk->size > MAXSIZE)
         stk->err_info.err_code |= stack_size_err;
-    else{
+
+    else {
         if (stk->size > 1)
             if (stk->data[stk->size - 1] == POISON)
                 stk->err_info.err_code |= poison_element_err;
