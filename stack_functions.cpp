@@ -18,7 +18,7 @@ int StackPush(struct Stack* stk, int new_el)
     if (stk->size > stk->capacity) {
         Stack_t* twin_ptr = (Stack_t*)realloc(stk->data,
                                              (BOOSTCAPASITY * stk->capacity + 2) *
-                                              sizeof(int));
+                                              sizeof(Stack_t));
 
         if (twin_ptr == NULL){
             PrintLogs(__FILE__, __func__, __LINE__,
@@ -77,7 +77,7 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
         return stack_capacity_err;
     }
 
-    Stack_t* twin_data = (Stack_t* )calloc(stk->capacity + 2, sizeof(int));
+    Stack_t* twin_data = (Stack_t* )calloc(stk->capacity + 2, sizeof(Stack_t));
 
     if (twin_data == NULL){
         PrintLogs(__FILE__, __func__, __LINE__,
