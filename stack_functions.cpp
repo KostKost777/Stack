@@ -51,10 +51,10 @@ int StackPop(struct Stack* stk, int* last_el)
                  "NULL stack ptr");
         return stack_ptr_err;
     }
-
+    stk->size--;
     CHECK_STACK(stk);
 
-    *last_el = stk->data[--stk->size];
+    *last_el = stk->data[stk->size];
 
     CHECK_STACK(stk);
 
