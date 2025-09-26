@@ -1,6 +1,7 @@
 #ifndef DUMP_FUNC
 #define DUMP_FUNC
 
+const int POISON = 228;
 
 enum StackErr_t
 {
@@ -8,14 +9,23 @@ enum StackErr_t
     stack_ptr_err = 2,
     data_ptr_err = 4,
     stack_capacity_err = 8,
-    stack_size_err = 16
+    stack_size_err = 16,
+    poison_element_err = 32
 };
 
-void PrintErrors(int err_code);
+struct Error_Info
+{
+    int err_code;
+    const char* err_file;
+    const char* err_func;
+    int err_line;
+};
+
+void PrintErrors(struct Stack* stk);
 
 int StackVerifier(struct Stack* stk);
 
-void StackDump(struct Stack* stk, int err_code);
+void StackDump(struct Stack* stk);
 
 void PrintDataWithCorrectCapacity(struct Stack* stk);
 
@@ -23,17 +33,24 @@ void PrintDataWithCorrectSize(struct Stack* stk);
 
 void PrintDataWithUnknownParam(struct Stack* stk);
 
+void PrintDataWithALLCorrect(struct Stack* stk);
+
 const ssize_t MAXCAPACITY = 1e6;
 const ssize_t MAXSIZE = 1e6;
 
-#define CHECK_STACK(stack_ptr)             \
-    err_code = StackVerifier(stack_ptr);   \
-    if (err_code != no_err){               \
-        StackDump(stack_ptr, err_code);    \
-        StackDtor(stack_ptr);              \
-        return err_code;                   \
-    }                                      \
+#define CHECK_STACK(stk)             \
+    if (StackVerifier(stk) != no_err){              \
+        stk->err_info.err_file = __FILE__;               \
+        stk->err_info.err_func = __func__;               \
+        stk->err_info.err_line = __LINE__;               \
+        StackDump(stk);                                     \
+        return stk->err_info.err_code;                   \
+    }                                                       \
 
-#define CHECK_KOSTIK( ... )  { int err = (__VA_ARGS__); if (err) StackDtor(&stk1); return 0; }
+#define CHECK_ERROR(FUNC, stk)  \
+    if (FUNC) { \
+    StackDtor(&stk);   \
+    return 0;     \
+    } \
 
 #endif

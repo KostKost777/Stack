@@ -5,21 +5,22 @@
 
 int main()
 {
-    Stack stk1 = {};
-    ssize_t stk1_size = 5;
+    INIT_STACK(stk2);
 
-    CHECK_KOSTIK ( StackCtor(&stk1, stk1_size) );
+    ssize_t stk2_size = 5;
 
-    CHECK_KOSTIK ( StackPush(&stk1, 10) );
-    CHECK_KOSTIK ( StackPush(&stk1, 20) );
-    CHECK_KOSTIK ( StackPush(&stk1, 30) );
+    CHECK_ERROR (StackCtor(&stk2, stk2_size), stk2);
 
-    stk1.capacity = -10;
+    CHECK_ERROR (StackPush(&stk2, 10), stk2);
+    CHECK_ERROR (StackPush(&stk2, 20), stk2);
+    CHECK_ERROR (StackPush(&stk2, 30), stk2);
 
+    StackDump(&stk2);
     int last_el = 0;
-    CHECK_KOSTIK ( StackPop(&stk1, &last_el) );
 
-    printf("last_el = %d (A Quostik ne pishett NAZWANNIYAAA peremennyh!!!\n", last_el);
+    CHECK_ERROR (StackPop(&stk2, &last_el), stk2);
 
-    StackDtor(&stk1);
+    printf("last_el = %d \n", last_el);
+
+    StackDtor(&stk2);
 }

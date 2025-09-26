@@ -5,69 +5,82 @@
 
 int StackVerifier(struct Stack* stk)
 {
-    int err_code = 0;
-
     if (stk == NULL)
-        err_code |= stack_ptr_err;
-
-    if (stk == NULL)
-        err_code |= stack_ptr_err;
+        stk->err_info.err_code |= stack_ptr_err;
 
     if (stk->data == NULL)
-        err_code |= data_ptr_err;
+        stk->err_info.err_code |= data_ptr_err;
 
     if (stk->capacity <= 0 || stk->capacity > MAXCAPACITY)
-        err_code |= stack_capacity_err;
+        stk->err_info.err_code |= stack_capacity_err;
 
     if (stk->size < 0 || stk->size > MAXSIZE)
-        err_code |= stack_size_err;
+        stk->err_info.err_code |= stack_size_err;
+    else{
+        if (stk->size > 0 && stk->data[stk->size - 1] == POISON)
+            stk->err_info.err_code |= poison_element_err;
+    }
 
-    return err_code;
+    return stk->err_info.err_code;
 }
 
-void PrintErrors(int err_code)
+void PrintErrors(struct Stack* stk)
 {
-    if (err_code & stack_ptr_err)
-        printf("BADSTACKPTR(%d) ", stack_ptr_err);
+    fprintf(stdout, "ERROR in %s %s:%d  \n", stk->err_info.err_func,
+                                             stk->err_info.err_file,
+                                             stk->err_info.err_line);
 
-    if (err_code & data_ptr_err)
-        printf("BADDATAPTR(%d) ", data_ptr_err);
+    if (stk->err_info.err_code & stack_ptr_err)
+        fprintf(stdout, "BADSTACKPTR(%d) ", stack_ptr_err);
 
-    if (err_code & stack_capacity_err)
-        printf("BADCAPACITY(%d) ", stack_capacity_err);
+    if (stk->err_info.err_code & data_ptr_err)
+        fprintf(stdout, "BADDATAPTR(%d) ", data_ptr_err);
 
-    if (err_code & stack_size_err)
-        printf("BADSIZE(%d) ", stack_size_err);
+    if (stk->err_info.err_code & stack_capacity_err)
+        fprintf(stdout, "BADCAPACITY(%d) ", stack_capacity_err);
+
+    if (stk->err_info.err_code & stack_size_err)
+        fprintf(stdout,"BADSIZE(%d) ", stack_size_err);
+
+    if (stk->err_info.err_code & poison_element_err)
+        fprintf(stdout,"BADELEMENT(%d) ", poison_element_err);
 }
 
-void StackDump(struct Stack* stk, int err_code)
+void StackDump(struct Stack* stk)
 {
-    printf("StackDump()\n"
-           "stack[%x] ",
-           (unsigned int)stk);
+    int err_code = stk->err_info.err_code;
 
-    PrintErrors(err_code);
+    fprintf(stdout,
+           "\n\nStackDump()\n"
+           "stack[%x] \nCREATE in %s %s:%d  \"%s\"\n",
+           (unsigned int)stk,
+           stk->stack_info.stack_create_func,
+           stk->stack_info.stack_create_file,
+           stk->stack_info.stack_create_line,
+           stk->stack_info.stack_name);
+
+    if (err_code != 0) PrintErrors(stk);
 
     //стурктура исправна
     if (!(err_code & stack_ptr_err)) {
-        printf("\n{");
+        fprintf(stdout, "\n{");
 
-        printf("\n    size = %d", stk->size);
+        fprintf(stdout, "\n    size = %d", stk->size);
         //индекс последнего элемента не корректный
         if (err_code & stack_size_err)
-            printf("    (BADSIZE!)");
+            fprintf(stdout, "    (BADSIZE!)");
 
-        printf("\n    capacity = %d", stk->capacity);
+        fprintf(stdout, "\n    capacity = %d", stk->capacity);
         //размер массива не корректныый
         if (err_code & stack_capacity_err)
-            printf("    (BADCAPACITY!)");
+            fprintf(stdout, "    (BADCAPACITY!)");
     }
 
-    printf("\n    data[%x] ", (unsigned int)stk->data);
+    fprintf(stdout, "\n    data[%x] ", (unsigned int)stk->data);
     //нулевой указатель на массив
     if (err_code & data_ptr_err)
-        printf("    (BADDATAPTR!)");
-    printf("\n");
+        fprintf(stdout, "    (BADDATAPTR!)");
+    fprintf(stdout, "\n");
 
     //сруктура и массив исправны
     if (!(err_code & stack_ptr_err) && !(err_code & data_ptr_err)){
@@ -83,26 +96,65 @@ void StackDump(struct Stack* stk, int err_code)
         // индекс последнего элемента корректный, но размер массива не корректный
         if ((err_code & stack_size_err) && (err_code & stack_capacity_err))
             PrintDataWithUnknownParam(stk);
+
+        // Все корректно
+        if (!(err_code & stack_size_err) && !(err_code & stack_capacity_err))
+            PrintDataWithALLCorrect(stk);
     }
 
-    printf("}");
+    fprintf(stdout, "}\n\n");
 }
 
-void PrintDataWithCorrectCapacity(struct Stack* stk) {
+void PrintDataWithCorrectCapacity(struct Stack* stk)
+{
     for (int i = 0; i < stk->capacity; ++i) {
-        printf("    [%d] - %d   (UNKNOWNSIZE!)\n", i, stk->data[i]);
+        fprintf(stdout, "    [%d] - %d", i, stk->data[i]);
+        if (stk->data[i] == POISON)
+            fprintf(stdout, "   (POISON)\n");
+        else
+            fprintf(stdout, "   (UNKNOWNSIZE!)\n");
     }
 }
 
-void PrintDataWithCorrectSize(struct Stack* stk){
+void PrintDataWithCorrectSize(struct Stack* stk)
+{
     for (int i = 0; i < stk->size; ++i) {
-        printf("    *[%d] - %d   (UNKNOWNCAPACITY!)\n", i, stk->data[i]);
+        fprintf(stdout, "    *[%d] - %d", i, stk->data[i]);
+
+        if (stk->data[i] == POISON)
+            fprintf(stdout, "   (POISON)\n");
+        else
+            fprintf(stdout, "   (UNKNOWNCAPACITY!)\n");
     }
 }
 
-void PrintDataWithUnknownParam(struct Stack* stk){
+void PrintDataWithUnknownParam(struct Stack* stk)
+{
     const int MAXVALUE = 5;
     for (int i = 0; i < MAXVALUE; ++i) {
-        printf("    [%d] - %d   (UNKNOWNPARAMS!)\n", i, stk->data[i]);
+        fprintf(stdout, "    [%d] - %d", i, stk->data[i]);
+
+        if (stk->data[i] == POISON)
+            fprintf(stdout, "   (POISON)\n");
+        else
+            fprintf(stdout, "   (UNKNOWNPARAMS!)\n");
+
+    }
+}
+
+void PrintDataWithALLCorrect(struct Stack* stk)
+{
+    for (int i = 0; i < stk->capacity; ++i) {
+        fprintf(stdout, "    ");
+
+        if (i < stk->size)
+            fprintf(stdout, "*");
+
+        fprintf(stdout, "[%d] - %d", i, stk->data[i]);
+
+        if (stk->data[i] == POISON)
+            printf("    (POISON!)");
+
+        fprintf(stdout, "\n");
     }
 }

@@ -5,7 +5,11 @@
 
 int StackPush(struct Stack* stk, int new_el)
 {
-    int err_code = 0;
+    if (stk == NULL){
+        fprintf(stdout, "ERROR: NULL stack ptr\n");
+        return stack_ptr_err;
+    }
+
     CHECK_STACK(stk);
 
     const int BOOSTCAPASITY = 2;
@@ -15,10 +19,8 @@ int StackPush(struct Stack* stk, int new_el)
                                              (BOOSTCAPASITY * stk->capacity + 1) *
                                               sizeof(int));
 
-        if (twin_ptr == NULL){
-            StackDump(stk, stack_capacity_err);
-            return  stack_capacity_err;
-        }
+        if (twin_ptr == NULL)
+            stk->err_info.err_code |= data_ptr_err;
 
         stk->data = twin_ptr;
     }
@@ -32,7 +34,11 @@ int StackPush(struct Stack* stk, int new_el)
 
 int StackPop(struct Stack* stk, int* last_el)
 {
-    int err_code = 0;
+    if (stk == NULL){
+        fprintf(stdout, "ERROR: NULL stack ptr\n");
+        return stack_ptr_err;
+    }
+
     CHECK_STACK(stk);
 
     *last_el = stk->data[--stk->size];
@@ -45,30 +51,29 @@ int StackPop(struct Stack* stk, int* last_el)
 int StackCtor(struct Stack* stk, ssize_t stk_size)
 {
     if (stk == NULL){
-        StackDump(stk, stack_ptr_err);
+        fprintf(stdout, "ERROR: NULL stack ptr\n");
         return stack_ptr_err;
     }
-
-    int err_code = 0;
 
     stk->capacity = stk_size;
 
     if (stk->capacity < 0)
-        err_code |= stack_capacity_err;
-
+        stk->err_info.err_code |= stack_capacity_err;
 
     Stack_t* twin_data = (Stack_t* )calloc(stk->capacity, sizeof(int));
 
-    if (twin_data == NULL)
-        err_code |= data_ptr_err;
+    if (twin_data == NULL){
+        fprintf(stdout, "ERROR: Calloc allocation \n");
+        return data_ptr_err;
+    }
 
     stk->data = twin_data;
     stk->size = 0;
 
-    if (err_code != no_err){
-        StackDump(stk, err_code);
-        return err_code;
-    }
+    for (int i = 0;i < stk->capacity; ++i)
+        stk->data[i] = POISON;
+
+    CHECK_STACK(stk);
 
     return no_err;
 }
@@ -76,14 +81,13 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
 int StackDtor(struct Stack* stk)
 {
     if (stk == NULL){
-        StackDump(stk, stack_ptr_err);
+        fprintf(stdout, "ERROR: NULL stack ptr\n");
         return stack_ptr_err;
     }
 
     free(stk->data);
-    stk->data = NULL;
-    stk->capacity = 0;
-    stk->size = 0;
+    *stk = Stack();
     stk = NULL;
+
     return no_err;
 }
