@@ -15,10 +15,9 @@ int StackPush(struct Stack* stk, int new_el)
 
     const int BOOSTCAPASITY = 2;
 
-    if (stk->size >= stk->capacity) {
-        stk->capacity *= BOOSTCAPACITY;
+    if (stk->size > stk->capacity) {
         Stack_t* twin_ptr = (Stack_t*)realloc(stk->data,
-                                             (stk->capacity + 2) *
+                                             (BOOSTCAPASITY * stk->capacity + 2) *
                                               sizeof(int));
 
         if (twin_ptr == NULL){
@@ -31,6 +30,10 @@ int StackPush(struct Stack* stk, int new_el)
     }
 
 
+
+    stk->data[stk->capacity + 1] = POISON;
+
+    stk->capacity = BOOSTCAPASITY * stk->capacity + 2;
 
     stk->data[stk->capacity + 1] = CANARY;
 
