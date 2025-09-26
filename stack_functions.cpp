@@ -6,7 +6,8 @@
 int StackPush(struct Stack* stk, int new_el)
 {
     if (stk == NULL){
-        fprintf(stdout, "ERROR: NULL stack ptr\n");
+        PrintLogs(__FILE__, __func__, __LINE__,
+                 "NULL stack ptr");
         return stack_ptr_err;
     }
 
@@ -15,15 +16,23 @@ int StackPush(struct Stack* stk, int new_el)
     const int BOOSTCAPASITY = 2;
 
     if (stk->size >= stk->capacity) {
+        stk->capacity *= BOOSTCAPACITY;
         Stack_t* twin_ptr = (Stack_t*)realloc(stk->data,
-                                             (BOOSTCAPASITY * stk->capacity + 1) *
+                                             (stk->capacity + 2) *
                                               sizeof(int));
 
-        if (twin_ptr == NULL)
-            stk->err_info.err_code |= data_ptr_err;
+        if (twin_ptr == NULL){
+            PrintLogs(__FILE__, __func__, __LINE__,
+                 "Realloc didn`t allocate the memory");
+            return data_ptr_err;
+        }
 
         stk->data = twin_ptr;
     }
+
+
+
+    stk->data[stk->capacity + 1] = CANARY;
 
     stk->data[stk->size] = new_el;
     stk->size++;
@@ -35,7 +44,8 @@ int StackPush(struct Stack* stk, int new_el)
 int StackPop(struct Stack* stk, int* last_el)
 {
     if (stk == NULL){
-        fprintf(stdout, "ERROR: NULL stack ptr\n");
+        PrintLogs(__FILE__, __func__, __LINE__,
+                 "NULL stack ptr");
         return stack_ptr_err;
     }
 
@@ -51,26 +61,34 @@ int StackPop(struct Stack* stk, int* last_el)
 int StackCtor(struct Stack* stk, ssize_t stk_size)
 {
     if (stk == NULL){
-        fprintf(stdout, "ERROR: NULL stack ptr\n");
+        PrintLogs(__FILE__, __func__, __LINE__,
+                 "NULL stack ptr");
         return stack_ptr_err;
     }
 
     stk->capacity = stk_size;
 
-    if (stk->capacity < 0)
-        stk->err_info.err_code |= stack_capacity_err;
+    if (stk->capacity < 0 || stk->capacity > MAXCAPACITY){
+        PrintLogs(__FILE__, __func__, __LINE__,
+                 "Incorrect stack capacity");
+        return stack_capacity_err;
+    }
 
-    Stack_t* twin_data = (Stack_t* )calloc(stk->capacity, sizeof(int));
+    Stack_t* twin_data = (Stack_t* )calloc(stk->capacity + 2, sizeof(int));
 
     if (twin_data == NULL){
-        fprintf(stdout, "ERROR: Calloc allocation \n");
+        PrintLogs(__FILE__, __func__, __LINE__,
+                 "Calloc didn`t allocate the memory");
         return data_ptr_err;
     }
 
     stk->data = twin_data;
-    stk->size = 0;
+    stk->size = 1;
 
-    for (int i = 0;i < stk->capacity; ++i)
+    stk->data[0] = CANARY;
+    stk->data[stk->capacity + 1] = CANARY;
+
+    for (int i = 1;i <= stk->capacity; ++i)
         stk->data[i] = POISON;
 
     CHECK_STACK(stk);
@@ -78,10 +96,18 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
     return no_err;
 }
 
+void PrintLogs(const char* file, const char* func,
+               int line, const char* err_description)
+{
+    fprintf(stdout, "ERROR: %s in %s %s:%d \n", err_description,
+                                                func, file, line);
+}
+
 int StackDtor(struct Stack* stk)
 {
     if (stk == NULL){
-        fprintf(stdout, "ERROR: NULL stack ptr\n");
+        PrintLogs(__FILE__, __func__, __LINE__,
+                 "NULL stack ptr\n");
         return stack_ptr_err;
     }
 

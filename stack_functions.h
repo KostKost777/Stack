@@ -28,6 +28,9 @@ int StackPop(struct Stack* stk, int* last_el);
 
 int StackPush(struct Stack* stk, int new_el);
 
+void PrintLogs(const char* file, const char* func,
+               int line, const char* err_description);
+
 #define INIT_STACK(stk) \
     struct Stack stk = {};   \
     stk.stack_info.stack_create_file = __FILE__; \

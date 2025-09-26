@@ -3,6 +3,8 @@
 
 const int POISON = 228;
 
+const int CANARY = INT_MIN;
+
 enum StackErr_t
 {
     no_err = 0,
@@ -10,7 +12,8 @@ enum StackErr_t
     data_ptr_err = 4,
     stack_capacity_err = 8,
     stack_size_err = 16,
-    poison_element_err = 32
+    poison_element_err = 32,
+    stack_canary_err = 64
 };
 
 struct Error_Info

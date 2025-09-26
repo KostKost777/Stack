@@ -11,14 +11,18 @@ int StackVerifier(struct Stack* stk)
     if (stk->data == NULL)
         stk->err_info.err_code |= data_ptr_err;
 
+    if (stk->data[0] != CANARY ||  stk->data[stk->capacity + 1] != CANARY)
+        stk->err_info.err_code |= stack_canary_err;
+
     if (stk->capacity <= 0 || stk->capacity > MAXCAPACITY)
         stk->err_info.err_code |= stack_capacity_err;
 
-    if (stk->size < 0 || stk->size > MAXSIZE)
+    if (stk->size < 1 || stk->size > MAXSIZE)
         stk->err_info.err_code |= stack_size_err;
     else{
-        if (stk->size > 0 && stk->data[stk->size - 1] == POISON)
-            stk->err_info.err_code |= poison_element_err;
+        if (stk->size > 1)
+            if (stk->data[stk->size - 1] == POISON)
+                stk->err_info.err_code |= poison_element_err;
     }
 
     return stk->err_info.err_code;
@@ -26,6 +30,8 @@ int StackVerifier(struct Stack* stk)
 
 void PrintErrors(struct Stack* stk)
 {
+
+
     fprintf(stdout, "ERROR in %s %s:%d  \n", stk->err_info.err_func,
                                              stk->err_info.err_file,
                                              stk->err_info.err_line);
@@ -44,10 +50,16 @@ void PrintErrors(struct Stack* stk)
 
     if (stk->err_info.err_code & poison_element_err)
         fprintf(stdout,"BADELEMENT(%d) ", poison_element_err);
+
+    if (stk->err_info.err_code & stack_canary_err)
+        fprintf(stdout,"CANARYDETECTED(%d) ", stack_canary_err);
+
+
 }
 
 void StackDump(struct Stack* stk)
 {
+
     int err_code = stk->err_info.err_code;
 
     fprintf(stdout,
@@ -84,7 +96,6 @@ void StackDump(struct Stack* stk)
 
     //сруктура и массив исправны
     if (!(err_code & stack_ptr_err) && !(err_code & data_ptr_err)){
-
         // индекс последнего элемента не корректный, но размер массива корректный
         if ((err_code & stack_size_err) && !(err_code & stack_capacity_err))
             PrintDataWithCorrectCapacity(stk);
@@ -103,22 +114,26 @@ void StackDump(struct Stack* stk)
     }
 
     fprintf(stdout, "}\n\n");
+
 }
 
 void PrintDataWithCorrectCapacity(struct Stack* stk)
 {
-    for (int i = 0; i < stk->capacity; ++i) {
+
+    for (int i = 1; i <= stk->capacity; ++i) {
         fprintf(stdout, "    [%d] - %d", i, stk->data[i]);
         if (stk->data[i] == POISON)
             fprintf(stdout, "   (POISON)\n");
         else
             fprintf(stdout, "   (UNKNOWNSIZE!)\n");
     }
+
 }
 
 void PrintDataWithCorrectSize(struct Stack* stk)
 {
-    for (int i = 0; i < stk->size; ++i) {
+
+    for (int i = 1; i < stk->size; ++i) {
         fprintf(stdout, "    *[%d] - %d", i, stk->data[i]);
 
         if (stk->data[i] == POISON)
@@ -126,12 +141,14 @@ void PrintDataWithCorrectSize(struct Stack* stk)
         else
             fprintf(stdout, "   (UNKNOWNCAPACITY!)\n");
     }
+
 }
 
 void PrintDataWithUnknownParam(struct Stack* stk)
 {
+
     const int MAXVALUE = 5;
-    for (int i = 0; i < MAXVALUE; ++i) {
+    for (int i = 1; i < MAXVALUE; ++i) {
         fprintf(stdout, "    [%d] - %d", i, stk->data[i]);
 
         if (stk->data[i] == POISON)
@@ -140,11 +157,13 @@ void PrintDataWithUnknownParam(struct Stack* stk)
             fprintf(stdout, "   (UNKNOWNPARAMS!)\n");
 
     }
+
 }
 
 void PrintDataWithALLCorrect(struct Stack* stk)
 {
-    for (int i = 0; i < stk->capacity; ++i) {
+
+    for (int i = 1; i <= stk->capacity; ++i) {
         fprintf(stdout, "    ");
 
         if (i < stk->size)
@@ -153,8 +172,9 @@ void PrintDataWithALLCorrect(struct Stack* stk)
         fprintf(stdout, "[%d] - %d", i, stk->data[i]);
 
         if (stk->data[i] == POISON)
-            printf("    (POISON!)");
+            fprintf(stdout, "    (POISON!)");
 
         fprintf(stdout, "\n");
     }
+
 }
