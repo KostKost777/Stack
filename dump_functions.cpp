@@ -3,6 +3,15 @@
 #include "dump_functions.h"
 #include "stack_functions.h"
 
+void SetErrorInfo(Stack* stk,
+                  const char* file, const char* func, int line)
+{
+    stk->err_info.err_file = file;
+    stk->err_info.err_func = func;
+    stk->err_info.err_line = line;
+}
+
+
 int StackVerifier(struct Stack* stk)
 {
     if (stk == NULL)
@@ -181,3 +190,6 @@ void PrintDataWithALLCorrect(struct Stack* stk)
     }
 
 }
+
+
+

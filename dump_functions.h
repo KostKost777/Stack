@@ -38,21 +38,25 @@ void PrintDataWithUnknownParam(struct Stack* stk);
 
 void PrintDataWithALLCorrect(struct Stack* stk);
 
+void SetErrorInfo(Stack* stk,
+                  const char* file, const char* func, int line);
+
 const ssize_t MAXCAPACITY = 1e6;
 const ssize_t MAXSIZE = 1e6;
 
-#define CHECK_STACK(stk)             \
-    if (StackVerifier(stk) != no_err){              \
-        stk->err_info.err_file = __FILE__;               \
-        stk->err_info.err_func = __func__;               \
-        stk->err_info.err_line = __LINE__;               \
-        StackDump(stk);                                     \
-        return stk->err_info.err_code;                   \
+#define CHECK_STACK(stk_ptr)             \
+    if (StackVerifier(stk_ptr) != no_err){\
+        SetErrorInfo(stk_ptr, __FILE__, __func__, __LINE__);    \
+        StackDump(stk_ptr);                                     \
+        return stk_ptr->err_info.err_code;                   \
     }                                                       \
+
+#define PRINT_LOGS(message)  \
+    PrintLogs(__FILE__, __func__, __LINE__, message);
 
 #define CHECK_ERROR(FUNC, stk)  \
     if (FUNC) { \
-    StackDtor(&stk);   \
+    StackDtor(&&stk);   \
     return 0;     \
     } \
 

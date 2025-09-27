@@ -1,4 +1,5 @@
 #include <TXLib.h>
+#include <stdio.h>
 
 #include "dump_functions.h"
 #include "stack_functions.h"
@@ -10,7 +11,7 @@ int main()
 
     INIT_STACK(stk2);
 
-    ssize_t stk2_size = 5;
+    ssize_t stk2_size = 10;
 
     StackCtor(&stk2, stk2_size);
 

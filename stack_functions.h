@@ -1,19 +1,19 @@
 #ifndef STACK
 #define STACK
 
-typedef int Stack_t;
+typedef int StackValueType;
 
 struct Stack_Info
 {
     const char* stack_create_file;
     const char* stack_create_func;
-    char* stack_name;
+    const char* stack_name;
     int stack_create_line;
 };
 
 struct Stack
 {
-    Stack_t* data;
+    StackValueType* data;
     ssize_t size;
     ssize_t capacity;
     Stack_Info stack_info;
@@ -31,14 +31,12 @@ int StackPush(struct Stack* stk, int new_el);
 void PrintLogs(const char* file, const char* func,
                int line, const char* err_description);
 
+void SetStackInfo(Stack* stk, const char* stk_name,
+                  const char* file, const char* func,
+                  int line);
+
 #define INIT_STACK(stk) \
     struct Stack stk = {};   \
-    stk.stack_info.stack_create_file = __FILE__; \
-    stk.stack_info.stack_create_func = __func__; \
-    stk.stack_info.stack_create_line = __LINE__; \
-    stk.stack_info.stack_name = #stk; \
-
-
-#define GETNAME(name) #name
+    SetStackInfo(&stk, #stk, __FILE__, __func__, __LINE__); \
 
 #endif

@@ -3,11 +3,10 @@
 #include "dump_functions.h"
 #include "stack_functions.h"
 
-int StackPush(struct Stack* stk, int new_el)
+int StackPush(struct Stack* stk, StackValueType new_el)
 {
     if (stk == NULL){
-        PrintLogs(__FILE__, __func__, __LINE__,
-                 "NULL stack ptr");
+        PRINT_LOGS("NULL stack ptr");
         return stack_ptr_err;
     }
 
@@ -16,20 +15,17 @@ int StackPush(struct Stack* stk, int new_el)
     const int BOOSTCAPASITY = 2;
 
     if (stk->size > stk->capacity) {
-        Stack_t* twin_ptr = (Stack_t*)realloc(stk->data,
+        StackValueType* twin_ptr = (StackValueType*)realloc(stk->data,
                                              (BOOSTCAPASITY * stk->capacity + 2) *
-                                              sizeof(Stack_t));
+                                              sizeof(StackValueType));
 
         if (twin_ptr == NULL){
-            PrintLogs(__FILE__, __func__, __LINE__,
-                 "Realloc didn`t allocate the memory");
+            PRINT_LOGS("Realloc didn`t allocate the memory");
             return data_ptr_err;
         }
 
         stk->data = twin_ptr;
     }
-
-
 
     stk->data[stk->capacity + 1] = POISON;
 
@@ -44,11 +40,10 @@ int StackPush(struct Stack* stk, int new_el)
     return no_err;
 }
 
-int StackPop(struct Stack* stk, int* last_el)
+int StackPop(struct Stack* stk, StackValueType* last_el)
 {
     if (stk == NULL){
-        PrintLogs(__FILE__, __func__, __LINE__,
-                 "NULL stack ptr");
+        PRINT_LOGS("NULL stack ptr");
         return stack_ptr_err;
     }
     stk->size--;
@@ -64,24 +59,21 @@ int StackPop(struct Stack* stk, int* last_el)
 int StackCtor(struct Stack* stk, ssize_t stk_size)
 {
     if (stk == NULL){
-        PrintLogs(__FILE__, __func__, __LINE__,
-                 "NULL stack ptr");
+        PRINT_LOGS("NULL stack ptr");
         return stack_ptr_err;
     }
 
     stk->capacity = stk_size;
 
     if (stk->capacity < 0 || stk->capacity > MAXCAPACITY){
-        PrintLogs(__FILE__, __func__, __LINE__,
-                 "Incorrect stack capacity");
+        PRINT_LOGS("Incorrect stack capacity");
         return stack_capacity_err;
     }
 
-    Stack_t* twin_data = (Stack_t* )calloc(stk->capacity + 2, sizeof(Stack_t));
+    StackValueType* twin_data = (StackValueType* )calloc(stk->capacity + 2, sizeof(StackValueType));
 
     if (twin_data == NULL){
-        PrintLogs(__FILE__, __func__, __LINE__,
-                 "Calloc didn`t allocate the memory");
+        PRINT_LOGS("Calloc didn`t allocate the memory");
         return data_ptr_err;
     }
 
@@ -106,17 +98,24 @@ void PrintLogs(const char* file, const char* func,
                                                 func, file, line);
 }
 
+void SetStackInfo(Stack* stk, const char* stk_name,
+                  const char* file, const char* func,
+                  int line)
+{
+    stk->stack_info.stack_create_file = file;
+    stk->stack_info.stack_create_func = func;
+    stk->stack_info.stack_create_line = line;
+    stk->stack_info.stack_name = stk_name;
+}
+
 int StackDtor(struct Stack* stk)
 {
     if (stk == NULL){
-        PrintLogs(__FILE__, __func__, __LINE__,
-                 "NULL stack ptr\n");
+        PRINT_LOGS("NULL stack ptr");
         return stack_ptr_err;
     }
 
     free(stk->data);
     *stk = Stack();
-    stk = NULL;
-
     return no_err;
 }
