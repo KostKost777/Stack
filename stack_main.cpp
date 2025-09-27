@@ -15,7 +15,7 @@ int main()
 
     StackCtor(&stk2, stk2_size);
 
-    StackPush(&stk2, 10);
+    StackPush(&stk2, 228);
     StackPush(&stk2, 20);
     StackPush(&stk2, 30);
 

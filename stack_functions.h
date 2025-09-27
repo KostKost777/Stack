@@ -35,6 +35,10 @@ void SetStackInfo(Stack* stk, const char* stk_name,
                   const char* file, const char* func,
                   int line);
 
+void SetPoisonValues(Stack* stk);
+
+int GetNewCapacity(Stack* stk);
+
 #define INIT_STACK(stk) \
     struct Stack stk = {};   \
     SetStackInfo(&stk, #stk, __FILE__, __func__, __LINE__); \

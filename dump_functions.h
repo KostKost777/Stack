@@ -13,7 +13,8 @@ enum StackErr_t
     stack_capacity_err = 8,
     stack_size_err = 16,
     poison_element_err = 32,
-    stack_canary_err = 64
+    end_canary_err = 64,
+    begin_canary_err = 128
 };
 
 struct Error_Info
@@ -41,6 +42,8 @@ void PrintDataWithALLCorrect(struct Stack* stk);
 void SetErrorInfo(Stack* stk,
                   const char* file, const char* func, int line);
 
+void SetIndexes(Stack* stk, int* s_i, int* e_i);
+
 const ssize_t MAXCAPACITY = 1e6;
 const ssize_t MAXSIZE = 1e6;
 
@@ -54,10 +57,11 @@ const ssize_t MAXSIZE = 1e6;
 #define PRINT_LOGS(message)  \
     PrintLogs(__FILE__, __func__, __LINE__, message);
 
-#define CHECK_ERROR(FUNC, stk)  \
-    if (FUNC) { \
-    StackDtor(&&stk);   \
-    return 0;     \
-    } \
+#define SET_INDEXES(stk) \
+    int start_index = 0;\
+    int end_index = 0; \
+    SetIndexes(stk, &start_index, &end_index);\
 
 #endif
+
+

@@ -12,26 +12,11 @@ int StackPush(struct Stack* stk, StackValueType new_el)
 
     CHECK_STACK(stk);
 
-    const int BOOSTCAPASITY = 2;
-
     if (stk->size > stk->capacity) {
-        StackValueType* twin_ptr = (StackValueType*)realloc(stk->data,
-                                             (BOOSTCAPASITY * stk->capacity + 2) *
-                                              sizeof(StackValueType));
-
-        if (twin_ptr == NULL){
-            PRINT_LOGS("Realloc didn`t allocate the memory");
-            return data_ptr_err;
-        }
-
-        stk->data = twin_ptr;
+        int err = no_err;
+        if ((err = GetNewCapacity(stk)) != no_err)
+            return err;
     }
-
-    stk->data[stk->capacity + 1] = POISON;
-
-    stk->capacity = BOOSTCAPASITY * stk->capacity + 2;
-
-    stk->data[stk->capacity + 1] = CANARY;
 
     stk->data[stk->size] = new_el;
     stk->size++;
@@ -46,7 +31,11 @@ int StackPop(struct Stack* stk, StackValueType* last_el)
         PRINT_LOGS("NULL stack ptr");
         return stack_ptr_err;
     }
+
+    CHECK_STACK(stk);
+
     stk->size--;
+
     CHECK_STACK(stk);
 
     *last_el = stk->data[stk->size];
@@ -70,7 +59,8 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
         return stack_capacity_err;
     }
 
-    StackValueType* twin_data = (StackValueType* )calloc(stk->capacity + 2, sizeof(StackValueType));
+    StackValueType* twin_data = (StackValueType* )calloc(stk->capacity + 2,
+                                                         sizeof(StackValueType));
 
     if (twin_data == NULL){
         PRINT_LOGS("Calloc didn`t allocate the memory");
@@ -78,13 +68,20 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
     }
 
     stk->data = twin_data;
-    stk->size = 1;
 
+    #ifdef NCANARY
+
+    stk->size = 0;
+
+    #else
+
+    stk->size = 1;
     stk->data[0] = CANARY;
     stk->data[stk->capacity + 1] = CANARY;
 
-    for (int i = 1;i <= stk->capacity; ++i)
-        stk->data[i] = POISON;
+    #endif
+
+    SetPoisonValues(stk);
 
     CHECK_STACK(stk);
 
@@ -118,4 +115,48 @@ int StackDtor(struct Stack* stk)
     free(stk->data);
     *stk = Stack();
     return no_err;
+}
+
+
+int GetNewCapacity(Stack* stk)
+{
+    const int BOOSTCAPASITY = 2;
+
+    int new_capacity = BOOSTCAPASITY * stk->capacity;
+
+    StackValueType* twin_ptr = (StackValueType*)realloc(stk->data,
+                                                        (new_capacity + 2) *
+                                                        sizeof(StackValueType));
+    if (twin_ptr == NULL){
+        PRINT_LOGS("Realloc didn`t allocate the memory");
+        return data_ptr_err;
+    }
+
+    stk->data = twin_ptr;
+
+    #ifndef NCANARY
+
+    stk->data[stk->capacity + 1] = POISON;
+    stk->capacity = new_capacity;
+    stk->data[stk->capacity + 1] = CANARY;
+
+    #endif
+
+    return no_err;
+}
+
+void SetPoisonValues(Stack* stk)
+{
+    int start_index = 0;
+    int end_index = stk->capacity;
+
+    #ifndef NCANARY
+
+    start_index = 1;
+    end_index = stk->capacity + 1;
+
+    #endif
+
+    for (; start_index < end_index; ++start_index)
+        stk->data[start_index] = POISON;
 }

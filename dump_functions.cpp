@@ -11,6 +11,20 @@ void SetErrorInfo(Stack* stk,
     stk->err_info.err_line = line;
 }
 
+void SetIndexes(Stack* stk, int* s_i, int* e_i)
+{
+    #ifdef NCANARY
+    *s_i = 0;
+    *e_i = stk->capacity;
+
+    #else
+    *s_i = 1;
+    *e_i = stk->capacity + 1;
+
+    #endif
+
+}
+
 
 int StackVerifier(struct Stack* stk)
 {
@@ -20,15 +34,22 @@ int StackVerifier(struct Stack* stk)
     if (stk->data == NULL)
         stk->err_info.err_code |= data_ptr_err;
 
-    if (stk->capacity <= 0 || stk->capacity > MAXCAPACITY)
+    if (stk->capacity <= 0 || stk->capacity >= MAXCAPACITY)
         stk->err_info.err_code |= stack_capacity_err;
 
-    else {
-        if (stk->data[0] != CANARY ||  stk->data[stk->capacity + 1] != CANARY)
-            stk->err_info.err_code |= stack_canary_err;
-    }
+    #ifndef NCANARY
 
-    if (stk->size < 1 || stk->size > MAXSIZE)
+    if (stk->data != NULL && stk->capacity > 0 && stk->capacity < MAXCAPACITY) {
+
+        if (stk->data[0] != CANARY)
+            stk->err_info.err_code |= begin_canary_err;
+
+        if (stk->data[stk->capacity + 1] != CANARY)
+            stk->err_info.err_code |= end_canary_err;
+    }
+    #endif
+
+    if (stk->size < 1 || stk->size >= MAXSIZE)
         stk->err_info.err_code |= stack_size_err;
 
     else {
@@ -63,10 +84,15 @@ void PrintErrors(struct Stack* stk)
     if (stk->err_info.err_code & poison_element_err)
         fprintf(stdout,"BADELEMENT(%d) ", poison_element_err);
 
-    if (stk->err_info.err_code & stack_canary_err)
-        fprintf(stdout,"CANARYDETECTED(%d) ", stack_canary_err);
+    #ifndef NCANARY
 
+    if (stk->err_info.err_code & end_canary_err)
+        fprintf(stdout,"BADENDCANARY(%d) ", end_canary_err);
 
+    if (stk->err_info.err_code & begin_canary_err)
+        fprintf(stdout,"BADBEGINCANARY(%d) ", begin_canary_err);
+
+    #endif
 }
 
 void StackDump(struct Stack* stk)
@@ -104,10 +130,12 @@ void StackDump(struct Stack* stk)
     //нулевой указатель на массив
     if (err_code & data_ptr_err)
         fprintf(stdout, "    (BADDATAPTR!)");
+
     fprintf(stdout, "\n");
 
     //сруктура и массив исправны
     if (!(err_code & stack_ptr_err) && !(err_code & data_ptr_err)){
+
         // индекс последнего элемента не корректный, но размер массива корректный
         if ((err_code & stack_size_err) && !(err_code & stack_capacity_err))
             PrintDataWithCorrectCapacity(stk);
@@ -126,14 +154,16 @@ void StackDump(struct Stack* stk)
     }
 
     fprintf(stdout, "}\n\n");
-
 }
 
 void PrintDataWithCorrectCapacity(struct Stack* stk)
 {
 
-    for (int i = 1; i <= stk->capacity; ++i) {
+    SET_INDEXES(stk);
+
+    for (int i = start_index; i < end_index; i++) {
         fprintf(stdout, "    [%d] - %d", i, stk->data[i]);
+
         if (stk->data[i] == POISON)
             fprintf(stdout, "   (POISON)\n");
         else
@@ -144,8 +174,9 @@ void PrintDataWithCorrectCapacity(struct Stack* stk)
 
 void PrintDataWithCorrectSize(struct Stack* stk)
 {
+    SET_INDEXES(stk);
 
-    for (int i = 1; i < stk->size; ++i) {
+    for (int i = start_index; i < end_index; ++i) {
         fprintf(stdout, "    *[%d] - %d", i, stk->data[i]);
 
         if (stk->data[i] == POISON)
@@ -158,9 +189,10 @@ void PrintDataWithCorrectSize(struct Stack* stk)
 
 void PrintDataWithUnknownParam(struct Stack* stk)
 {
+    SET_INDEXES(stk);
 
     const int MAXVALUE = 5;
-    for (int i = 1; i < MAXVALUE; ++i) {
+    for (int i = start_index; i < MAXVALUE; ++i) {
         fprintf(stdout, "    [%d] - %d", i, stk->data[i]);
 
         if (stk->data[i] == POISON)
@@ -174,8 +206,7 @@ void PrintDataWithUnknownParam(struct Stack* stk)
 
 void PrintDataWithALLCorrect(struct Stack* stk)
 {
-
-    for (int i = 1; i <= stk->capacity; ++i) {
+    for (int i = start_index; i < end_index; ++i) {
         fprintf(stdout, "    ");
 
         if (i < stk->size)
@@ -188,7 +219,6 @@ void PrintDataWithALLCorrect(struct Stack* stk)
 
         fprintf(stdout, "\n");
     }
-
 }
 
 
