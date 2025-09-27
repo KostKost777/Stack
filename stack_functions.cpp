@@ -9,7 +9,6 @@ int StackPush(struct Stack* stk, StackValueType new_el)
         PRINT_LOGS("NULL stack ptr");
         return stack_ptr_err;
     }
-
     CHECK_STACK(stk);
 
     if (stk->size > stk->capacity) {
@@ -74,7 +73,7 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
     stk->size = 0;
 
     #else
-
+    printf("HUI\n");
     stk->size = 1;
     stk->data[0] = CANARY;
     stk->data[stk->capacity + 1] = CANARY;
@@ -147,16 +146,9 @@ int GetNewCapacity(Stack* stk)
 
 void SetPoisonValues(Stack* stk)
 {
-    int start_index = 0;
-    int end_index = stk->capacity;
+    int start_index = CANARY_CONST;
+    int end_index = stk->capacity + CANARY_CONST;
 
-    #ifndef NCANARY
-
-    start_index = 1;
-    end_index = stk->capacity + 1;
-
-    #endif
-
-    for (; start_index < end_index; ++start_index)
-        stk->data[start_index] = POISON;
+    for (int i = start_index; i < end_index; ++i)
+        stk->data[i] = POISON;
 }

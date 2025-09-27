@@ -15,9 +15,11 @@ int main()
 
     StackCtor(&stk2, stk2_size);
 
-    StackPush(&stk2, 228);
+    StackPush(&stk2, 10);
     StackPush(&stk2, 20);
     StackPush(&stk2, 30);
+
+    printf("%d", stk2.data[0]);
 
     int last_el = 0;
     StackPop(&stk2, &last_el);

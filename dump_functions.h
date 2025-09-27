@@ -3,7 +3,16 @@
 
 const int POISON = 228;
 
-const int CANARY = INT_MIN;
+#ifndef NCANARY
+
+int CANARY = INT_MIN;
+const int CANARY_CONST = 1;
+
+#else
+
+const int CANARY_CONST = 0;
+
+#endif
 
 enum StackErr_t
 {
@@ -42,8 +51,6 @@ void PrintDataWithALLCorrect(struct Stack* stk);
 void SetErrorInfo(Stack* stk,
                   const char* file, const char* func, int line);
 
-void SetIndexes(Stack* stk, int* s_i, int* e_i);
-
 const ssize_t MAXCAPACITY = 1e6;
 const ssize_t MAXSIZE = 1e6;
 
@@ -56,11 +63,6 @@ const ssize_t MAXSIZE = 1e6;
 
 #define PRINT_LOGS(message)  \
     PrintLogs(__FILE__, __func__, __LINE__, message);
-
-#define SET_INDEXES(stk) \
-    int start_index = 0;\
-    int end_index = 0; \
-    SetIndexes(stk, &start_index, &end_index);\
 
 #endif
 
