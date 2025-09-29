@@ -9,9 +9,10 @@ int StackPush(struct Stack* stk, StackValueType new_el)
         PRINT_LOGS("NULL stack ptr");
         return stack_ptr_err;
     }
+
     CHECK_STACK(stk);
 
-    if (stk->size > stk->capacity) {
+    if (stk->size >= stk->capacity + CANARY_CONST) {
         int err = no_err;
         if ((err = GetNewCapacity(stk)) != no_err)
             return err;
@@ -20,7 +21,12 @@ int StackPush(struct Stack* stk, StackValueType new_el)
     stk->data[stk->size] = new_el;
     stk->size++;
 
+    #ifdef WITHHASH
+    stk->stack_info.hash = GetHash(stk);
+    #endif
+
     CHECK_STACK(stk);
+
     return no_err;
 }
 
@@ -38,6 +44,12 @@ int StackPop(struct Stack* stk, StackValueType* last_el)
     CHECK_STACK(stk);
 
     *last_el = stk->data[stk->size];
+
+    stk->data[stk->size] = POISON;
+
+    #ifdef WITHHASH
+    stk->stack_info.hash = GetHash(stk);
+    #endif
 
     CHECK_STACK(stk);
 
@@ -68,12 +80,12 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
 
     stk->data = twin_data;
 
-    #ifdef NCANARY
+    #ifndef WITHCANARY
 
     stk->size = 0;
 
     #else
-    printf("HUI\n");
+
     stk->size = 1;
     stk->data[0] = CANARY;
     stk->data[stk->capacity + 1] = CANARY;
@@ -81,6 +93,10 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
     #endif
 
     SetPoisonValues(stk);
+
+    #ifdef WITHHASH
+    stk->stack_info.hash = GetHash(stk);
+    #endif
 
     CHECK_STACK(stk);
 
@@ -133,13 +149,18 @@ int GetNewCapacity(Stack* stk)
 
     stk->data = twin_ptr;
 
-    #ifndef NCANARY
+    #ifdef WITHCANARY
 
     stk->data[stk->capacity + 1] = POISON;
-    stk->capacity = new_capacity;
-    stk->data[stk->capacity + 1] = CANARY;
+    stk->data[new_capacity + 1] = CANARY;
 
     #endif
+
+    for (int i = stk->capacity + CANARY_CONST; i < new_capacity + CANARY_CONST; ++i) {
+        stk->data[i] = POISON;
+    }
+
+    stk->capacity = new_capacity;
 
     return no_err;
 }
