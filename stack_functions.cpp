@@ -3,6 +3,8 @@
 #include "dump_functions.h"
 #include "stack_functions.h"
 
+extern FILE* log_file;
+
 int StackPush(struct Stack* stk, StackValueType new_el)
 {
     if (stk == NULL){
@@ -106,7 +108,7 @@ int StackCtor(struct Stack* stk, ssize_t stk_size)
 void PrintLogs(const char* file, const char* func,
                int line, const char* err_description)
 {
-    fprintf(stdout, "ERROR: %s in %s %s:%d \n", err_description,
+    fprintf(log_file, "ERROR: %s in %s %s:%d \n", err_description,
                                                 func, file, line);
 }
 

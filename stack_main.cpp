@@ -3,10 +3,11 @@
 #include "dump_functions.h"
 #include "stack_functions.h"
 
+FILE* log_file = fopen("logfile.txt", "w");
+
+
 int main()
 {
-    FILE* file = fopen(log_file_name, "w");
-    fclose(file);
 
     INIT_STACK(stk2);
 
@@ -16,11 +17,13 @@ int main()
 
     StackPush(&stk2, 10);
     StackPush(&stk2, 20);
-    stk2.data[0] = 5;
     StackPush(&stk2, 30);
 
     int last_el = 0;
     StackPop(&stk2, &last_el);
 
+    StackDump(&stk2);
+
     StackDtor(&stk2);
+    fclose(log_file);
 }

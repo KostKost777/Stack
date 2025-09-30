@@ -4,17 +4,17 @@
 #define WITHCANARY
 #define WITHHASH
 
-extern const char* log_file_name;
-
 const int POISON = 228;
 
 #ifdef WITHCANARY
 
+const int CANARY_CAPACITY_CONST = 2;
 const int CANARY_CONST = 1;
-const int CANARY = 0xDEADBABE;
+const int CANARY = 0xBADBABE;
 
 #else
 
+const int CANARY_CAPACITY_CONST = 0;
 const int CANARY_CONST = 0;
 
 #endif
